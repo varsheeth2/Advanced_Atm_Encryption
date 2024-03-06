@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/get_cash.css">
+    <title>User Login</title>
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <p id="small">ATM</p>
+        <!-- Content container -->
+        <div class="small-container">
+            <!-- Left section -->
+            <div class="left">
+                <p>Welcome</p>
+                <p id="user_name">{{name}}</p>
+            </div>
+            <!-- Form for getting cash -->
+            <form action="/homepage" method="post" class="right">
+                <!-- Input for amount -->
+                <input type="number" placeholder="Enter Amount" id="price" min="100" required>
+                <!-- Confirm button -->
+                <button id="confirm">Confirm</button>
+                <!-- Redirect button -->
+                <button id="redirect">Redirect To Home Screen</button>
+                <!-- Loader -->
+                <div class="loader"></div>
+                <!-- Verification message -->
+                <p id="verification"></p>
+                <!-- OTP input -->
+                <input type="text" placeholder="Enter OTP" id="otp">
+                <!-- OTP confirmation button -->
+                <button id="otpbtn">Confirm</button>
+                <!-- Button to request OTP again -->
+                <form action="/submit"><button id="logbtn">Didn't get OTP?</button></form>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Hidden form to update balance -->
+    <form style="display: none;">
+        <button id="updateBalanceBtn">Update Balance</button>
+    </form>
+
+    <!-- Audio for cash dispensing -->
+    <audio id="dispenseSound">
+        <source src="/static/cash.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- JavaScript code -->
+    <script>
+        // Initialize counter for login attempts
+        counter = 2;
+        // Get user name
+        let user_name = document.getElementById("user_name").innerText;
+        // Get verification message element
+        let p = document.getElementById("verification");
+        // Get input for amount
+        let price = document.getElementById("price");
+        // Get OTP input
+        let otp = document.getElementById("otp");
+        // Get OTP confirmation button
+        let otpbtn = document.getElementById("otpbtn");
+        // Get logout button
+        let logbtn = document.getElementById("logbtn");
+        // Get loader element
+        let loader = document.querySelector(".loader");
+        // Get confirm button
+        let cnf = document.querySelector("#confirm");
+        // Generate random OTP
+        let randomNumber = Math.floor(Math.random() * 9000) + 1000;
+        // Hide OTP input and buttons initially
+        otp.style.display = "none";
+        otpbtn.style.display = "none";
+        logbtn.style.display = "none";
+
+        // Event listener for confirm button
+        document.getElementById("confirm").addEventListener("click", function(event) {
+            // Check if available balance is sufficient
+            if (check_available_balance(price.value)) {
+                const params = {
+                    name: user_name
+                };
+                const queryString = new URLSearchParams(params).toString();
+                const url = '/run_script?' + queryString + '&remaining_balance=' + price.value;
+
+                event.preventDefault();
+                loader.style.display = "block";
+                p.innerText = "Verifying Face ID";
+                p.classList.remove("confirm");
+                p.classList.remove("rejected");
+
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text();
+                    })
+                    .then(data => {
+                        loader.style.display = "none";
+                        let token = '0\n'
+                        console.log("#",data,"#",token)
+        
+                        if (token == data) {
+                            counter--;
+                            if (counter === 0) {
+                                p.innerText = `You Are Out Of Chances, Try After Some Time`;
+                                price.style.display = "none";
+                                redirect.style.display = "block";
+                                cnf.style.display = "none";
+                            } else {
+                                p.classList.remove("confirm");
+                                p.classList.add("rejected");
+                                p.innerText = `Access Denied, Faced ID Not Matched, Last ${counter} chance`;
+                            }
+                        } else {
+                            price.style.display = "none";
+                            cnf.style.display = "none";
+                            otp.style.display = "block";
+                            otpbtn.style.display = "block";
+                            logbtn.style.display = "block";
+                            p.classList.remove("rejected");
+                            p.classList.add("confirm");
+                            p.innerText = "Access Granted, Faced ID Matched";
+                            setTimeout(() => {
+                                alert(`OTP Sent to Your Mobile Number\nOTP-${randomNumber}`);
+                            }, 1000);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with the fetch operation:', error);
+                    });
+            } else {
+                alert("Insufficient Balance\nYou will be redirected to Home Screen\nThank you for using our Service");
+            }
+        });
+
+        // Event listener for OTP confirmation button
+        document.getElementById("otpbtn").addEventListener("click", function(event) {
+            var sound = document.getElementById("dispenseSound");
+            sound.play();
+            event.preventDefault();
+            otp.style.display = "none";
+            otpbtn.style.display = "none";
+            p.innerText = "Collect Your Cash";
+            p.style.color = "white";
+            logbtn.innerText = "Logout";
+        });
+    </script>
+    
+    <!-- JavaScript for user data -->
+    <script>
+        var enteredName = "{{ name }}";
+        var userCredentials = JSON.parse('{{ user_credentials | tojson | safe }}');
+        var userData = userCredentials.find(function(user) {
+            return user.name === enteredName;
+        });
+
+        function check_available_balance(balance) {
+            if (balance <= userData.balance)
+                return true;
+            else
+                return false;
+        }
+    </script>
+    
+    <!-- JavaScript for enabling/disabling buttons based on input -->
+    <script>
+        const textInput = document.getElementById('price');
+        const submitButton = document.getElementById('confirm');
+
+        function toggleButtonState() {
+            if (textInput.value.trim() === '') {
+                submitButton.disabled = true;
+            } else {
+                submitButton.disabled = false;
+            }
+        }
+
+        textInput.addEventListener('input', toggleButtonState);
+        toggleButtonState();
+    </script>
+    
+    <!-- JavaScript for enabling/disabling OTP confirmation button based on input -->
+    <script>
+        const textInput1 = document.getElementById('otp');
+        const submitButton1 = document.getElementById('otpbtn');
+        submitButton1.disabled = true;
+
+        function toggleButtonState1() {
+            console.log(textInput1.value.trim());
+            if (textInput1.value.trim() == randomNumber.toString().trim()) {
+                submitButton1.disabled = false;
+                console.log("Enabled");
+            } else {
+                console.log("Disabled");
+                submitButton1.disabled = true;
+            }
+        }
+
+        textInput1.addEventListener('input', toggleButtonState1);
+    </script>
+</body>
+</html>

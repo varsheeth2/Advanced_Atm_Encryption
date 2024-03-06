@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/user.css">
+    <title>User Login</title>
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <p id="small">ATM</p>
+        <!-- Content container -->
+        <div class="small-container">
+            <!-- Left section -->
+            <div class="left">
+                <p>Welcome</p>
+                <!-- Display user name -->
+                <p>{{namee}}</p>
+            </div>
+            <!-- Right section -->
+            <div class="right">
+                <!-- Buttons for different actions -->
+                <button id="get_cash">Get Cash</button>
+                <button id="balance">Check Balance</button>
+                <button>Payments</button>
+                <button>Credit Card</button>
+                <button>Account Setting</button>
+                <!-- Form for cancelling transaction -->
+                <form action="/homepage"><button>Cancel Transaction</button></form>
+            </div>
+        </div>
+    </div>
+    <!-- Form for getting cash -->
+    <form id="formDataForm" action="/get_cash" method="post" style="display: none;">
+        <input type="hidden" id="user-name" name="name">
+    </form>
+    <!-- Form for checking balance -->
+    <form id="formDataForm2" action="/balance" method="post" style="display: none;">
+        <input type="hidden" id="user-name2" name="name">
+    </form>
+    <script>
+        // Event listener for "Get Cash" button
+        document.getElementById("get_cash").addEventListener("click", function() {
+            // Set the user name in the form and submit
+            document.querySelector("#user-name").value = "{{namee}}";
+            document.querySelector("#formDataForm").submit();
+        });
+        
+        // Event listener for "Check Balance" button
+        document.getElementById("balance").addEventListener("click", function() {
+            // Set the user name in the form and submit
+            document.querySelector("#user-name2").value = "{{namee}}";
+            document.querySelector("#formDataForm2").submit();
+        });
+
+        // Get user credentials based on the entered name
+        var enteredName = "{{ namee }}";
+        
+        // Parse the JSON string to a JavaScript object
+        var userCredentials = JSON.parse('{{ user_credentials | tojson | safe }}');
+
+        // Filter user credentials data based on the entered name
+        var userData = userCredentials.find(function(user) {
+            return user.name === enteredName;
+        });
+    </script>
+</body>
+</html>

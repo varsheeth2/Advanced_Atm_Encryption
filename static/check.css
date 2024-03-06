@@ -1,0 +1,113 @@
+/* Global reset */
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Header styles */
+.header{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 10vh;
+    width: 100%;
+    background-color: #1E1E24;
+    color: white;
+    font-size: 40px;
+    font-family: fantasy;
+    word-spacing: 10px;
+}
+
+/* Main content container */
+.main{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 87vh;
+    width: 100%;
+    background-color: rgb(255, 255, 255);
+}
+
+/* Inner container */
+.container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    height: 80%;
+    width: 80%;
+    border-radius: 8px;
+    box-shadow: 25px 20px 30px 4px rgba(0, 0, 0, 0.462);
+}
+
+/* Left and right sections within the container */
+.left, .right{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 50%;
+}
+
+/* Styling for the card image */
+#card{
+    max-height:50%;
+    max-width: 90%;
+    transition: all 0.2s linear;
+}
+#card:hover{
+    scale: 1.05;
+}
+
+/* Form styling */
+.form{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background-color: #1E1E24;
+    color: white;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Input field styling */
+input{
+    background-color: #1E1E24;
+    color: white;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.444);
+    height: 8%;
+    outline: none;
+    width: 60%;
+    text-align: center;
+    font-size: 20px;
+}
+
+/* Placeholder text alignment */
+::placeholder{
+    text-align: center;
+}
+
+/* Submit button styling */
+input[type="submit"]{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    padding: 8px 13px 13px 8px;
+    border-radius: 4px;
+    transition: all 0.2s linear;
+    background-color: white;
+    color: #1E1E24;
+    border: 1px solid #1E1E24;
+}
+
+/* Hover effect for submit button */
+input[type="submit"]:hover{
+    background-color: #1E1E24;
+    color: white;
+    border: 1px solid white;
+}

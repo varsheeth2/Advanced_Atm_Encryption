@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Link to stylesheet -->
+    <link rel="stylesheet" href="/static/balance.css">
+    
+    <!-- Page title -->
+    <title>User Login</title>
+</head>
+<body>
+    <!-- Main container -->
+    <div class="container">
+        <!-- Header -->
+        <p id="small">ATM</p>
+        
+        <!-- Small container for user login -->
+        <div class="small-container">
+            <!-- Left section for welcome message and user name -->
+            <div class="left">
+                <p>Welcome</p>
+                <p id="user_name">{{name}}</p>
+            </div>
+
+            <!-- Form for user login -->
+            <form action="/homepage" method="post" class="right">
+                <!-- Input field for entering amount -->
+                <input type="number" placeholder="Enter Number Between 10-100" id="price" min="100" required>
+                <!-- Confirm button -->
+                <button id="confirm">Confirm</button>
+                <!-- Redirect button -->
+                <button id="redirect">Redirect To Home Screen</button>
+                <!-- Loader icon -->
+                <div class="loader"></div>
+                <!-- Verification message -->
+                <p id="verification"></p>
+                <!-- OTP input field -->
+                <input type="text" placeholder="Enter OTP" id="otp">
+                <!-- OTP confirm button -->
+                <button id="otpbtn">Confirm</button>
+                <!-- Resend OTP button -->
+                <form action="/submit"><button id="logbtn">Didn't get OTP?</button></form>
+            </form>
+        </div>
+    </div>
+    <!-- JavaScript for user login functionality -->
+    <script>
+        // Initialize variables
+        counter=2;
+        let user_name=document.getElementById("user_name").innerText;
+        let p=document.getElementById("verification");
+        let price=document.getElementById("price");
+        let otp=document.getElementById("otp");
+        let otpbtn=document.getElementById("otpbtn");
+        let logbtn=document.getElementById("logbtn");
+        let loader=document.querySelector(".loader");
+        let cnf=document.querySelector("#confirm");
+        let randomNumber=Math.floor(Math.random() * 9000) + 1000;
+        otp.style.display="none";
+        otpbtn.style.display="none";
+        logbtn.style.display="none";
+
+        // Event listener for confirm button
+        document.getElementById("confirm").addEventListener("click", function(event) {
+            const params = {
+                name: user_name// Replace 'exampleName' with the actual name value you want to pass
+            };
+
+            // Convert the parameters object into a query string
+            const queryString = new URLSearchParams(params).toString();
+
+            // Construct the URL with the query string
+            const url = '/run_script?' + queryString;
+
+            event.preventDefault();
+            loader.style.display="block";
+            p.innerText="Verifying Face ID";
+            p.classList.remove("confirm");
+            p.classList.remove("rejected");
+            // Send a request to the server to run the Python script
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    loader.style.display="none";
+                    let token='0\n'
+                    if(token===data)
+                    {
+                        counter--;
+                        if(counter===0)
+                        {
+                            p.innerText=`You Are Out Of Chances, Try After Some Time`;
+                            // let confirm=document.querySelector("#confirm");
+                            let redirect=document.querySelector("#redirect");
+                            // let price=document.querySelector("#price");
+                            price.style.display="none";
+                            redirect.style.display="block";
+                            cnf.style.display="none";
+                        }
+                        else 
+                        {
+                            p.classList.remove("confirm");
+                            p.classList.add("rejected");
+                            p.innerText=`Access Denied, Faced ID Not Matched, Last ${counter} chance`;
+                        }
+                    }
+                    else{
+                        price.style.display="none";
+                        cnf.style.display="none";
+                        otp.style.display="block";
+                        otpbtn.style.display="block";
+                        logbtn.style.display="block";
+                        p.classList.remove("rejected");
+                        p.classList.add("confirm");
+                        p.innerText="Access Granted, Faced ID Matched";
+                        setTimeout(()=>{alert(`OTP Sent to Your Mobile Number\nOTP-${randomNumber}`)},1000);
+                    }
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                });
+        });
+
+        // Event listener for OTP confirm button
+        document.getElementById("otpbtn").addEventListener("click", function(event) {
+            var sound = document.getElementById("dispenseSound");
+            event.preventDefault();
+            otp.style.display="none";
+            otpbtn.style.display="none";
+            show_balance();
+            p.style.color="white";
+            logbtn.innerText="Logout";
+        })
+    </script>
+
+    <!-- JavaScript for displaying balance -->
+    <script>
+        function show_balance(){
+            let bal=document.getElementById("verification");
+            bal.innerText="Available Balance: "+userData.balance;
+        }
+    </script>
+
+    <!-- JavaScript for retrieving user data -->
+    <script>
+        var enteredName = "{{ name }}";
+        // Parse the JSON string to a JavaScript object
+        var userCredentials = JSON.parse('{{ user_credentials | tojson | safe }}');
+
+        // Filter user credentials data based on the entered name
+        var userData = userCredentials.find(function(user) {
+            return user.name === enteredName;
+        });
+    </script>
+
+    <!-- JavaScript for enabling/disabling submit button based on input -->
+    <script>
+        // Get references to the input field and submit button
+        const textInput = document.getElementById('price');
+        const submitButton = document.getElementById('confirm');
+        
+        // Function to enable/disable the button based on text input
+        function toggleButtonState() {
+            if (textInput.value.trim() === '') {
+                submitButton.disabled = true;
+            } else {
+                submitButton.disabled = false;
+            }
+        }
+        
+        // Add event listener to the text input field
+        textInput.addEventListener('input', toggleButtonState);
+        
+        // Call the function initially to set initial state of the button
+        toggleButtonState();
+    </script>
+
+    <!-- JavaScript for enabling/disabling OTP confirm button based on input -->
+    <script>
+        const textInput1 = document.getElementById('otp');
+        const submitButton1 = document.getElementById('otpbtn');
+        submitButton1.disabled = true;
+        // Function to enable/disable the button based on text input
+        function toggleButtonState1() {
+            console.log(textInput1.value.trim());
+            if (textInput1.value.trim() ==randomNumber.toString().trim()) {
+                submitButton1.disabled = false;
+                console.log("Enabled");
+            } else {
+                console.log("Disabled");
+                submitButton1.disabled = true;
+            }
+        }
+        textInput1.addEventListener('input', toggleButtonState1);
+    </script>
+</body>
+</html>
